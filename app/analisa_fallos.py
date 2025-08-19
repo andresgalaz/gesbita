@@ -2,6 +2,7 @@ import json
 import pymysql
 import os
 import sys
+import re
 
 # Configura tu conexión a MySQL
 print(
@@ -27,9 +28,15 @@ for linea in sys.stdin:
         print(f"Procesnado línea {lnNumber} {erNumber}")
 
     if '{"success": false' in linea:
+        linea = re.sub(
+            r'("message": \\\")(.*?)(\\")',
+            lambda m: f"\"message\": '{m.group(2).replace('"', "'")}'",
+            linea,
+        )
         if '"message": \\""' in linea:
             linea = linea.replace('"message": \\""', '"message": "')
             linea = linea.replace('"\\"', '"')
+
         # Separa la fecha y el JSON
         try:
             fecha_str, json_str = linea.strip().split(" ", 1)
