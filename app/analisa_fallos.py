@@ -4,6 +4,13 @@ import os
 import sys
 import re
 
+
+def replace_inner_quotes(match):
+    text = match.group(1)
+    # Reemplaza las comillas dobles internas por `
+    return text.replace('"', "`")
+
+
 # Configura tu conexión a MySQL
 print(
     {
@@ -20,6 +27,8 @@ if not os.getenv("DB_HOST"):
 
 errores_acumulados = {}
 
+simple = "'"
+doble = '"'
 lnNumber = 0
 erNumber = 0
 for linea in sys.stdin:
@@ -28,16 +37,15 @@ for linea in sys.stdin:
         print(f"Procesnado línea {lnNumber} {erNumber}")
 
     if '{"success": false' in linea:
-        simple = "'"
-        doble = '"'
         linea = re.sub(
-            r'("message": \\"")(.*?)("\\")',
-            lambda m: f"\"message\": '{m.group(2).replace(doble, simple)}'",
+            r'"message": \\"(.*)\\"',
+            lambda m: f'"message": "{replace_inner_quotes(m)}"',
             linea,
         )
-        if '"message": \\""' in linea:
-            linea = linea.replace('"message": \\""', '"message": "')
-            linea = linea.replace('"\\"', '"')
+        # if '"message": \\""' in linea:
+        #     linea = linea.replace('[^\\]"', "#")
+        #     linea = linea.replace('"message": \\""', '"message": "')
+        #     linea = linea.replace('"\\"', '"')
 
         # Separa la fecha y el JSON
         try:
@@ -62,7 +70,7 @@ for linea in sys.stdin:
                 print(f"Procesnado línea {lnNumber} {erNumber}")
 
         except Exception as e:
-            print(f"Error procesando línea: {linea.strip()}\n{e}")
+            print(f"Error procesando línea {lnNumber}: {linea.strip()}\n{e}")
             raise e
 
 conn = pymysql.connect(
