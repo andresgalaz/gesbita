@@ -28,9 +28,11 @@ for linea in sys.stdin:
         print(f"Procesnado línea {lnNumber} {erNumber}")
 
     if '{"success": false' in linea:
+        simple = "'"
+        doble = '"'
         linea = re.sub(
-            r'("message": \\\")(.*?)(\\")',
-            lambda m: f"\"message\": '{m.group(2).replace('"', "'")}'",
+            r'("message": \\"")(.*?)("\\")',
+            lambda m: f"\"message\": '{m.group(2).replace(doble, simple)}'",
             linea,
         )
         if '"message": \\""' in linea:
